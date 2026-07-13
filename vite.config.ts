@@ -12,6 +12,10 @@ export default defineConfig({
         changeOrigin: true,
         ws: true, // Proxy WebSockets too
       },
+      '/media': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
     },
   },
 })
