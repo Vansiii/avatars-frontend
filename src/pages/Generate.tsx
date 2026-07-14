@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, Type, Grid, Sliders, Sparkles, AlertCircle, Loader2, Lock, Check, Download, Maximize2, RefreshCw } from 'lucide-react';
 import { useAuthStore } from '../store';
+import CreditsDisplay from '../components/CreditsDisplay';
+import ErrorDisplay from '../components/ErrorDisplay';
+import { extractErrorCode } from '../utils/errorMessages';
 
 interface Style {
   id: string;
@@ -51,6 +54,7 @@ export default function Generate() {
   const [progress, setProgress] = useState(0);
   const [progressMsg, setProgressMsg] = useState('Encolando tarea...');
   const [generationError, setGenerationError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | undefined>(undefined);
   const [generatedResults, setGeneratedResults] = useState<GeneratedAvatar[]>([]);
 
   // Step 5: Results state
@@ -145,7 +149,10 @@ export default function Generate() {
 
     // Credits check
     if (user && user.credits_used >= user.credits_limit) {
-      setValidationError('Has alcanzado tu límite mensual de créditos. Por favor actualiza tu plan.');
+      const upgradeMsg = user.plan_tier === 'free' 
+        ? 'Has alcanzado tu límite mensual de 5 créditos. Actualiza a Pro para obtener 100 créditos/mes.'
+        : 'Has alcanzado tu límite mensual de créditos. Los créditos se renuevan el próximo mes.';
+      setValidationError(upgradeMsg);
       return;
     }
 
@@ -153,6 +160,7 @@ export default function Generate() {
     setProgress(5);
     setProgressMsg('Creando solicitud...');
     setGenerationError(null);
+    setErrorCode(undefined);
 
     try {
       const formData = new FormData();
@@ -179,6 +187,9 @@ export default function Generate() {
 
       const data = await res.json();
       if (!res.ok) {
+        // Extract error code from response
+        const code = extractErrorCode(res, data);
+        setErrorCode(code);
         throw new Error(data.detail || 'Error al iniciar la generación');
       }
 
@@ -211,6 +222,9 @@ export default function Generate() {
             setStep(5); // Switch to results view
           }, 800);
         } else if (msg.event === 'generation_failed') {
+          // Extract error code from WebSocket message
+          const code = msg.data.error_code;
+          if (code) setErrorCode(code);
           setGenerationError(msg.data.message || 'La generación del avatar falló.');
           socket.close();
         }
@@ -218,82 +232,14 @@ export default function Generate() {
 
       socket.onerror = (err) => {
         console.error('WebSocket error:', err);
-        // Graceful fallback: run local simulation if websocket has issues
-        runSimulation(request_id);
+        setGenerationError('Conexión perdida con el servidor. Por favor, intenta nuevamente.');
+        setErrorCode(undefined); // Network errors don't have a GEN_ code
+        socket.close();
       };
 
     } catch (err: any) {
       setGenerationError(err.message || 'Ocurrió un error al enviar el trabajo de generación.');
     }
-  };
-
-  // Fallback Generation Simulation
-  const runSimulation = async (request_id: string) => {
-    console.log('Running fallback simulation for request:', request_id);
-    const steps = [
-      { progress: 20, msg: 'Validando entrada...' },
-      { progress: 50, msg: 'Aplicando estilo visual...' },
-      { progress: 80, msg: 'Optimizando imagen y escalando...' }
-    ];
-
-    for (const stepInfo of steps) {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setProgress(stepInfo.progress);
-      setProgressMsg(stepInfo.msg);
-    }
-
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setProgress(100);
-    setProgressMsg('¡Completado con éxito!');
-
-    // Mock response avatars using Unsplash images matching the style
-    const category = selectedStyle?.category || 'professional';
-    const placeholders: Record<string, string[]> = {
-      professional: [
-        "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=512&h=512&fit=crop",
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=512&h=512&fit=crop",
-        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=512&h=512&fit=crop",
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=512&h=512&fit=crop",
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=512&h=512&fit=crop",
-        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=512&h=512&fit=crop"
-      ],
-      gaming: [
-        "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=512&h=512&fit=crop",
-        "https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=512&h=512&fit=crop",
-        "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=512&h=512&fit=crop"
-      ],
-      social: [
-        "https://images.unsplash.com/photo-1614680376593-902f74fa0d41?w=512&h=512&fit=crop",
-        "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=512&h=512&fit=crop",
-        "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=512&h=512&fit=crop"
-      ],
-      'gaming-character': [
-        "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=512&h=512&fit=crop",
-        "https://images.unsplash.com/photo-1518770660439-4636190af475?w=512&h=512&fit=crop",
-        "https://images.unsplash.com/photo-1509248961158-e54f6934749c?w=512&h=512&fit=crop"
-      ]
-    };
-
-    const urls = placeholders[category] || placeholders.professional;
-    const avatars: GeneratedAvatar[] = [];
-    for (let i = 0; i < variations; i++) {
-      const url = urls[i % urls.length];
-      avatars.push({
-        id: `mock-${i}-${Date.now()}`,
-        preview_url: `${url}&sig=${request_id}_${i}`,
-        download_url: `${url}&sig=${request_id}_${i}`,
-        resolution: "512x512",
-        is_watermarked: true
-      });
-    }
-
-    setGeneratedResults(avatars);
-    if (user) {
-      updateUser({ credits_used: user.credits_used + 1 });
-    }
-    setTimeout(() => {
-      setStep(5);
-    }, 800);
   };
 
   const handleRestart = () => {
@@ -727,6 +673,17 @@ export default function Generate() {
             />
           </div>
 
+          {/* Credits Display */}
+          {user && (
+            <CreditsDisplay
+              creditsUsed={user.credits_used}
+              creditsLimit={user.credits_limit}
+              planTier={user.plan_tier}
+              variant="compact"
+              showUpgradeButton={false}
+            />
+          )}
+
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
             <button onClick={() => setStep(2)} className="btn btn-secondary">
               Atrás
@@ -735,6 +692,7 @@ export default function Generate() {
               onClick={handleStartGeneration}
               className="btn btn-primary"
               style={{ background: 'var(--accent-gradient)' }}
+              disabled={user && user.credits_used >= user.credits_limit}
             >
               <Sparkles size={16} /> Generar Avatar
             </button>
@@ -762,9 +720,12 @@ export default function Generate() {
                 <AlertCircle size={32} />
               </div>
               <h2 style={{ fontSize: '1.75rem' }}>Generación fallida</h2>
-              <p style={{ maxWidth: '400px', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
-                {generationError}
-              </p>
+              
+              {/* Use ErrorDisplay component for mapped error codes */}
+              <div style={{ width: '100%', maxWidth: '500px' }}>
+                <ErrorDisplay errorCode={errorCode} customMessage={!errorCode ? generationError : undefined} />
+              </div>
+
               <button onClick={handleRestart} className="btn btn-primary" style={{ marginTop: '10px' }}>
                 Intentar de Nuevo
               </button>
