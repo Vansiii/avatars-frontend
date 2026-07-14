@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, Wand2, ShieldAlert, Sparkles, Download, Maximize2, RefreshCw, ChevronLeft, ChevronRight, HelpCircle } from 'lucide-react';
 import { useAuthStore } from '../store';
+import CreditsDisplay from '../components/CreditsDisplay';
 
 interface Avatar {
   id: string;
@@ -114,6 +115,17 @@ export default function Dashboard() {
           <Wand2 size={18} /> Crear Nuevo Avatar
         </Link>
       </div>
+
+      {/* Credits Widget */}
+      {user && (
+        <CreditsDisplay
+          creditsUsed={user.credits_used}
+          creditsLimit={user.credits_limit}
+          planTier={user.plan_tier}
+          variant="full"
+          showUpgradeButton={true}
+        />
+      )}
 
       {/* History section */}
       <div>
