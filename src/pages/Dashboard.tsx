@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, Wand2, ShieldAlert, Sparkles, Download, Maximize2, RefreshCw, ChevronLeft, ChevronRight, HelpCircle } from 'lucide-react';
 import { useAuthStore } from '../store';

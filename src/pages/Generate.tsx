@@ -692,7 +692,7 @@ export default function Generate() {
               onClick={handleStartGeneration}
               className="btn btn-primary"
               style={{ background: 'var(--accent-gradient)' }}
-              disabled={user && user.credits_used >= user.credits_limit}
+              disabled={!!user && user.credits_used >= user.credits_limit}
             >
               <Sparkles size={16} /> Generar Avatar
             </button>

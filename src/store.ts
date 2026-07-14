@@ -32,9 +32,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   token: localStorage.getItem('token'),
   refreshToken: localStorage.getItem('refreshToken'),
   user: localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!) : null,
-  apiBase: '/api/v1',
+  apiBase: import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/v1` : '/api/v1',
   wsBase: '',
   getWsBase: () => {
+    const apiUrl = import.meta.env.VITE_API_URL;
+    if (apiUrl) {
+      const url = new URL(apiUrl);
+      const protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+      return `${protocol}//${url.host}/api/v1`;
+    }
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     return `${protocol}//${window.location.host}/api/v1`;
   },
@@ -69,7 +75,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   fetchWithAuth: async (url: string, options: RequestInit = {}) => {
-    const { token, apiBase, logout, setSession, refreshToken } = get();
+    const { token, apiBase, logout, refreshToken } = get();
     const headers = new Headers(options.headers || {});
 
     if (token) {

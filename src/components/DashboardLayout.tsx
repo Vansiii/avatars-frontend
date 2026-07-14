@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Sparkles, LayoutDashboard, Wand2, User as UserIcon, LogOut, RefreshCw } from 'lucide-react';
+import { Sparkles, LayoutDashboard, Wand2, User as UserIcon, LogOut } from 'lucide-react';
 import { useAuthStore } from '../store';
 
 interface Props {

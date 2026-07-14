@@ -1,4 +1,3 @@
-import React from 'react';
 import { Zap, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 

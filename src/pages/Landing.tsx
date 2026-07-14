@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, ArrowRight, Zap, Layers, ShieldCheck, Heart } from 'lucide-react';
 import { useAuthStore } from '../store';
@@ -132,7 +131,7 @@ export default function Landing() {
             { img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop', name: 'Corporate Portrait' },
           ].map((item, i) => (
             <div key={i} className="glass-card" style={{ padding: '8px', borderRadius: '16px', position: 'relative', overflow: 'hidden' }}>
-              <img src={item.img} alt={item.name} style={{ width: '100%', aspectRatio: '1/1', objectFit: 'crop', borderRadius: '12px', display: 'block' }} />
+              <img src={item.img} alt={item.name} style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', borderRadius: '12px', display: 'block' }} />
               <div style={{
                 position: 'absolute',
                 bottom: '16px',

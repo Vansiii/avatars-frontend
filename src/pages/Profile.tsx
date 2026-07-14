@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldAlert, Loader2, Save, Trash2, CheckCircle, Info } from 'lucide-react';
+import { ShieldAlert, Loader2, Save, Trash2, CheckCircle } from 'lucide-react';
 import { useAuthStore } from '../store';
 
 export default function Profile() {
-  const { user, token, fetchWithAuth, updateUser, logout } = useAuthStore();
+  const { user, fetchWithAuth, updateUser, logout } = useAuthStore();
   const navigate = useNavigate();
 
   // Form states

@@ -1,4 +1,3 @@
-import React from 'react';
 import { AlertCircle, AlertTriangle, Info } from 'lucide-react';
 import { getErrorDetail } from '../utils/errorMessages';
 
