@@ -48,7 +48,15 @@ export default function Login() {
   return (
     <div className="login-page">
       <div className="login-card">
-        <h1 className="brand-name">TVU <span className="brand-accent">Studio</span></h1>
+        <div className="brand-logos login-brand-logos">
+          <span className="brand-logo-chip brand-logo-chip--lg">
+            <img src="/logo-tvu.jpg" alt="Canal 11 TVU" />
+          </span>
+          <span className="brand-logo-chip brand-logo-chip--lg">
+            <img src="/logo-uagrm.jpg" alt="UAGRM" />
+          </span>
+        </div>
+        <h1 className="brand-name"><span className="brand-tv">TV</span><span className="brand-u">U</span> Studio</h1>
         <p className="brand-subtitle login-brand-subtitle">Canal 11 · UAGRM</p>
         <p className="subtitle">Personajes para Spots de TV</p>
         <form onSubmit={handleSubmit}>

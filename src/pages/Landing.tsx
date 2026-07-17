@@ -5,10 +5,26 @@ export default function Landing() {
   return (
     <div className="landing-page">
       <nav className="landing-nav">
-        <span className="brand-name">TVU <span className="brand-accent">Studio</span></span>
+        <div className="brand-logos">
+          <span className="brand-logo-chip brand-logo-chip--tvu">
+            <img src="/logo-tvu.jpg" alt="Canal 11 TVU" />
+          </span>
+          <span className="brand-logo-chip brand-logo-chip--uagrm">
+            <img src="/logo-uagrm.jpg" alt="UAGRM" />
+          </span>
+          <span className="brand-name"><span className="brand-tv">TV</span><span className="brand-u">U</span> Studio</span>
+        </div>
         <Link to="/login" className="btn-primary">Iniciar Sesión</Link>
       </nav>
       <div className="landing-content">
+        <div className="brand-logos landing-hero-logos">
+          <span className="brand-logo-chip brand-logo-chip--lg">
+            <img src="/logo-tvu.jpg" alt="Canal 11 TVU" />
+          </span>
+          <span className="brand-logo-chip brand-logo-chip--lg">
+            <img src="/logo-uagrm.jpg" alt="UAGRM" />
+          </span>
+        </div>
         <p className="brand-subtitle">Canal 11 · UAGRM</p>
         <h1>Estudio de Personajes para TV</h1>
         <p className="landing-subtitle">Sistema de Personajes para Spots Publicitarios</p>

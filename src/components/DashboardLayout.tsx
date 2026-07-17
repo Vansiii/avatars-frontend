@@ -23,7 +23,15 @@ export default function DashboardLayout() {
     <div className="layout">
       <aside className="sidebar">
         <div className="sidebar-header sidebar-brand">
-          <span className="brand-name">TVU <span className="brand-accent">Studio</span></span>
+          <div className="brand-logos">
+            <span className="brand-logo-chip brand-logo-chip--tvu">
+              <img src="/logo-tvu.jpg" alt="Canal 11 TVU" />
+            </span>
+            <span className="brand-logo-chip brand-logo-chip--uagrm">
+              <img src="/logo-uagrm.jpg" alt="UAGRM" />
+            </span>
+          </div>
+          <span className="brand-name"><span className="brand-tv">TV</span><span className="brand-u">U</span> Studio</span>
           <span className="brand-subtitle">Canal 11 · UAGRM</span>
         </div>
         <nav className="sidebar-nav">
