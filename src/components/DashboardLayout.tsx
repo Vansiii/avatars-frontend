@@ -1,11 +1,19 @@
+import { useEffect, useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store";
-import { LayoutDashboard, Users, Film, UserCircle, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, Users, Film, UserCircle, ShieldCheck, Menu, X } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 
 export default function DashboardLayout() {
   const { user, logout } = useAuthStore();
   const location = useLocation();
+  // El sidebar es off-canvas en mobile; en desktop este estado no aplica (CSS lo fija visible)
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Cerrar el menú al navegar: en mobile el sidebar tapa el contenido, quedaría abierto sobre la nueva página
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
 
   const navItems = [
     { path: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -22,8 +30,32 @@ export default function DashboardLayout() {
 
   return (
     <div className="layout">
-      <aside className="sidebar">
+      {/* Barra superior solo-mobile: hamburguesa para abrir el sidebar off-canvas */}
+      <header className="mobile-topbar">
+        <button
+          className="hamburger"
+          onClick={() => setMenuOpen(true)}
+          aria-label="Abrir menú"
+          aria-expanded={menuOpen}
+        >
+          <Menu size={22} />
+        </button>
+        <span className="brand-name"><span className="brand-tv">TV</span><span className="brand-u">U</span> Studio</span>
+        <ThemeToggle />
+      </header>
+
+      {/* Fondo oscuro que cierra el menú al tocar fuera (solo visible con menú abierto en mobile) */}
+      {menuOpen && <div className="sidebar-backdrop" onClick={() => setMenuOpen(false)} />}
+
+      <aside className={`sidebar ${menuOpen ? "open" : ""}`}>
         <div className="sidebar-header sidebar-brand">
+          <button
+            className="sidebar-close"
+            onClick={() => setMenuOpen(false)}
+            aria-label="Cerrar menú"
+          >
+            <X size={20} />
+          </button>
           <div className="brand-logos">
             <span className="brand-logo-chip brand-logo-chip--tvu">
               <img src="/logo-tvu.jpg" alt="Canal 11 TVU" />

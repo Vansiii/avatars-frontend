@@ -72,6 +72,9 @@ export default function Landing() {
               <Link to="/login" className="btn-primary btn-lg">
                 Iniciar Sesión <ArrowRight size={18} />
               </Link>
+              <a href="#como-funciona" className="btn-secondary btn-lg">
+                Cómo funciona
+              </a>
             </div>
             <ul className="landing-trust">
               <li><ShieldCheck size={16} /> Filtro NSFW automático en cada generación</li>
@@ -98,7 +101,7 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="landing-steps">
+        <section className="landing-steps" id="como-funciona">
           <h2>Cómo funciona</h2>
           <div className="landing-steps-grid">
             {STEPS.map((step) => {

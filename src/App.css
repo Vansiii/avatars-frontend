@@ -1681,8 +1681,9 @@ select,
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 2.25rem;
-  height: 2.25rem;
+  /* 2.75rem = 44px: mínimo táctil de la Ley de Fitts (antes 36px, difícil de acertar en mobile) */
+  width: 2.75rem;
+  height: 2.75rem;
   border-radius: 50%;
   border: 1px solid var(--border);
   background: var(--card-bg);
@@ -1803,4 +1804,145 @@ select,
   height: 1.25rem;
   border-radius: 0.25rem;
   flex-shrink: 0;
+}
+
+/* ── Fitts: objetivos táctiles ────────────────────────────────────────────
+   Los botones chicos de tabla/modal ("Eliminar", "Editar", "Límites") tenían
+   ~30px de alto. 40px es acertable con el dedo sin agrandar visualmente el texto. */
+.btn-secondary,
+.btn-danger {
+  min-height: 2.5rem;
+}
+
+/* ── Landing: jerarquía de CTA (primario + ancla secundaria) ──────────────
+   Antes el hero repetía el mismo botón del nav. Un secundario "Cómo funciona"
+   da jerarquía sin sumar decisiones (Ley de Hick). */
+.landing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.landing-actions .btn-secondary {
+  padding: 0.75rem 1.5rem;
+  font-size: 1.125rem;
+  text-decoration: none;
+}
+
+@media (max-width: 860px) {
+  .landing-actions {
+    justify-content: center;
+  }
+}
+
+/* Scroll suave para el ancla del hero → sección "Cómo funciona".
+   Guardado por reduced-motion: un salto instantáneo si el usuario lo prefiere. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* ── Shell responsive del dashboard ───────────────────────────────────────
+   El layout era sidebar de 240px fijos + main, sin colapso: en mobile la barra
+   se comía la pantalla. Debajo de 900px el sidebar pasa a off-canvas con
+   hamburguesa. La topbar y los botones de cerrar solo existen en mobile. */
+.mobile-topbar {
+  display: none;
+}
+
+.hamburger,
+.sidebar-close {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .mobile-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 1rem;
+    background: color-mix(in srgb, var(--sidebar-bg) 92%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .mobile-topbar .brand-name {
+    flex: 1;
+    font-size: var(--font-lg);
+    color: var(--text);
+  }
+
+  .hamburger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--card-bg);
+    color: var(--text);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .layout {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 260px;
+    max-width: 82vw;
+    z-index: 40;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.4);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  .main-content {
+    padding: 1.25rem;
+  }
+}
+
+/* El off-canvas se desliza; si el usuario pide menos movimiento, aparece sin transición */
+@media (prefers-reduced-motion: reduce) {
+  .sidebar {
+    transition: none;
+  }
 }
