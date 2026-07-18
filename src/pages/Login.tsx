@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store";
+import ThemeToggle from "../components/ThemeToggle";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -47,6 +48,7 @@ export default function Login() {
 
   return (
     <div className="login-page">
+      <ThemeToggle className="login-theme-toggle" />
       <div className="login-card">
         <div className="brand-logos login-brand-logos">
           <span className="brand-logo-chip brand-logo-chip--lg">

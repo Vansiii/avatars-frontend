@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuthStore } from "../store";
 import { authFetch } from "../lib/api";
 import { Image, Sparkles, Check, RefreshCw, Loader2, User, Calendar, Plus, X } from "lucide-react";
+import { CharacterCardSkeleton } from "../components/Skeleton";
 
 interface Category {
   id: string;
@@ -278,10 +279,19 @@ export default function Characters() {
     return labels[cat] || cat;
   };
 
+  // Se conoce la forma final (lista de tarjetas de personaje) mientras se cargan
+  // categorías, por eso es skeleton y no un spinner genérico de página completa.
   if (loading) {
     return (
-      <div className="inline-loading">
-        <Loader2 size={20} className="spin" /> Cargando categorías...
+      <div className="page">
+        <div className="page-header">
+          <h1><User size={24} /> Mis Personajes</h1>
+        </div>
+        <div className="characters-list">
+          <CharacterCardSkeleton />
+          <CharacterCardSkeleton />
+          <CharacterCardSkeleton />
+        </div>
       </div>
     );
   }
@@ -335,13 +345,12 @@ export default function Characters() {
               {batch.map((v) => (
                 <div
                   key={v.index}
-                  className={`variation-card ${selectedVariation === v.index ? "selected" : ""}`}
+                  className={`variation-card ${selectedVariation === v.index ? "selected" : ""} ${
+                    selectedVariation !== null && selectedVariation !== v.index ? "dimmed" : ""
+                  }`}
                 >
                   {!loadedImages.has(v.index) && (
-                    <div className="image-loading">
-                      <Loader2 size={32} className="spin" />
-                      <p>Cargando imagen...</p>
-                    </div>
+                    <div className="image-loading skeleton" />
                   )}
                   <img
                     src={v.image_url}
@@ -501,8 +510,10 @@ export default function Characters() {
       )}
 
       {loadingCharacters && (
-        <div className="inline-loading">
-          <Loader2 size={20} className="spin" /> Cargando personajes...
+        <div className="characters-list">
+          <CharacterCardSkeleton />
+          <CharacterCardSkeleton />
+          <CharacterCardSkeleton />
         </div>
       )}
 

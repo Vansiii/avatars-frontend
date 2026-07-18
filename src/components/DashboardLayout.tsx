@@ -1,6 +1,7 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store";
 import { LayoutDashboard, Users, Film, UserCircle, ShieldCheck } from "lucide-react";
+import ThemeToggle from "./ThemeToggle";
 
 export default function DashboardLayout() {
   const { user, logout } = useAuthStore();
@@ -53,9 +54,12 @@ export default function DashboardLayout() {
             <span className="sidebar-user-avatar">{initial}</span>
             <p className="user-name">{user?.display_name}</p>
           </div>
-          <button onClick={logout} className="btn-logout">
-            Cerrar sesión
-          </button>
+          <div className="sidebar-footer-actions">
+            <button onClick={logout} className="btn-logout">
+              Cerrar sesión
+            </button>
+            <ThemeToggle />
+          </div>
         </div>
       </aside>
       <main className="main-content">

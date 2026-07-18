@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { authFetch } from "../lib/api";
-import { Users, Tag, BarChart3, Loader2 } from "lucide-react";
+import { Users, Tag, BarChart3, Plus, Pencil, Trash2, SlidersHorizontal, X, Check } from "lucide-react";
+import { StatCardSkeleton, TableRowSkeleton } from "../components/Skeleton";
 
 interface User {
   id: string;
@@ -218,10 +219,36 @@ export default function Admin() {
     }
   };
 
+  // Se conoce la forma final de la página (métricas + tabs + tabla de usuarios),
+  // por eso es skeleton y no un spinner genérico de página completa.
   if (loading) {
     return (
-      <div className="inline-loading">
-        <Loader2 size={20} className="spin" /> Cargando panel de administración...
+      <div className="page">
+        <h1>Panel de Administración</h1>
+        <div className="dashboard-cards">
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+        </div>
+        <div className="admin-tabs">
+          <span className="tab-btn active"><Users size={16} /> Usuarios</span>
+          <span className="tab-btn"><Tag size={16} /> Categorías</span>
+        </div>
+        <table className="users-table">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Nombre</th>
+              <th>Rol</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <TableRowSkeleton columns={4} />
+            <TableRowSkeleton columns={4} />
+            <TableRowSkeleton columns={4} />
+          </tbody>
+        </table>
       </div>
     );
   }
@@ -273,7 +300,7 @@ export default function Admin() {
           <div className="section-header">
             <h2>Usuarios</h2>
             <button className="btn-primary" onClick={() => setShowCreateModal(true)}>
-              Crear Usuario
+              <Plus size={16} /> Crear Usuario
             </button>
           </div>
           <table className="users-table">
@@ -297,14 +324,16 @@ export default function Admin() {
                         <button
                           onClick={() => handleViewLimits(user.id)}
                           className="btn-secondary"
+                          title="Ver y editar límites semanales"
                         >
-                          Límites
+                          <SlidersHorizontal size={14} /> Límites
                         </button>
                         <button
                           onClick={() => handleDelete(user.id)}
                           className="btn-danger"
+                          title="Eliminar usuario"
                         >
-                          Eliminar
+                          <Trash2 size={14} /> Eliminar
                         </button>
                       </>
                     )}
@@ -322,7 +351,7 @@ export default function Admin() {
           <div className="section-header">
             <h2>Categorías de Spots</h2>
             <button className="btn-primary" onClick={() => { setEditingCategory(null); setNewCategoryName(""); setShowCategoryModal(true); }}>
-              Crear Categoría
+              <Plus size={16} /> Crear Categoría
             </button>
           </div>
           <table className="users-table">
@@ -340,14 +369,16 @@ export default function Admin() {
                     <button
                       onClick={() => { setEditingCategory(cat); setNewCategoryName(cat.name); setShowCategoryModal(true); }}
                       className="btn-secondary"
+                      title="Editar categoría"
                     >
-                      Editar
+                      <Pencil size={14} /> Editar
                     </button>
                     <button
                       onClick={() => handleDeleteCategory(cat.id)}
                       className="btn-danger"
+                      title="Eliminar categoría"
                     >
-                      Eliminar
+                      <Trash2 size={14} /> Eliminar
                     </button>
                   </td>
                 </tr>
@@ -398,8 +429,8 @@ export default function Admin() {
                 />
               </div>
               <div className="modal-actions">
-                <button type="submit" className="btn-primary">Crear</button>
-                <button type="button" className="btn-secondary" onClick={() => setShowCreateModal(false)}>Cancelar</button>
+                <button type="submit" className="btn-primary"><Check size={16} /> Crear</button>
+                <button type="button" className="btn-secondary" onClick={() => setShowCreateModal(false)}><X size={16} /> Cancelar</button>
               </div>
             </form>
           </div>
@@ -424,8 +455,8 @@ export default function Admin() {
                 />
               </div>
               <div className="modal-actions">
-                <button type="submit" className="btn-primary">{editingCategory ? "Guardar" : "Crear"}</button>
-                <button type="button" className="btn-secondary" onClick={() => { setShowCategoryModal(false); setEditingCategory(null); }}>Cancelar</button>
+                <button type="submit" className="btn-primary"><Check size={16} /> {editingCategory ? "Guardar" : "Crear"}</button>
+                <button type="button" className="btn-secondary" onClick={() => { setShowCategoryModal(false); setEditingCategory(null); }}><X size={16} /> Cancelar</button>
               </div>
             </form>
           </div>
@@ -471,7 +502,7 @@ export default function Admin() {
               </div>
             </div>
 
-            <button className="btn-secondary" onClick={() => setSelectedUser(null)}>Cerrar</button>
+            <button className="btn-secondary" onClick={() => setSelectedUser(null)}><X size={16} /> Cerrar</button>
           </div>
         </div>
       )}

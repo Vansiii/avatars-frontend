@@ -3,6 +3,7 @@ import { useAuthStore } from "../store";
 import { authFetch } from "../lib/api";
 import { Link } from "react-router-dom";
 import { Film, Sparkles } from "lucide-react";
+import { StatCardSkeleton } from "../components/Skeleton";
 
 interface Limits {
   characters_used: number;
@@ -45,6 +46,7 @@ function LimitCard({
 export default function Dashboard() {
   const user = useAuthStore((s) => s.user);
   const [limits, setLimits] = useState<Limits | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchLimits();
@@ -67,6 +69,8 @@ export default function Dashboard() {
         spots_limit: 5,
         spots_remaining: 5,
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -75,22 +79,31 @@ export default function Dashboard() {
       <h1>Bienvenido, {user?.display_name}</h1>
 
       <div className="dashboard-cards">
-        <LimitCard
-          icon={<Sparkles size={16} />}
-          title="Personajes"
-          used={limits?.characters_used ?? 0}
-          limit={limits?.characters_limit ?? 2}
-          remaining={limits?.characters_remaining ?? 2}
-          label="creados esta semana"
-        />
-        <LimitCard
-          icon={<Film size={16} />}
-          title="Spots"
-          used={limits?.spots_used ?? 0}
-          limit={limits?.spots_limit ?? 5}
-          remaining={limits?.spots_remaining ?? 5}
-          label="generados esta semana"
-        />
+        {loading ? (
+          <>
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+          </>
+        ) : (
+          <>
+            <LimitCard
+              icon={<Sparkles size={16} />}
+              title="Personajes"
+              used={limits?.characters_used ?? 0}
+              limit={limits?.characters_limit ?? 2}
+              remaining={limits?.characters_remaining ?? 2}
+              label="creados esta semana"
+            />
+            <LimitCard
+              icon={<Film size={16} />}
+              title="Spots"
+              used={limits?.spots_used ?? 0}
+              limit={limits?.spots_limit ?? 5}
+              remaining={limits?.spots_remaining ?? 5}
+              label="generados esta semana"
+            />
+          </>
+        )}
       </div>
 
       <div className="dashboard-actions">

@@ -58,3 +58,40 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+
+export type Theme = "light" | "dark";
+
+// El script inline de index.html ya fija data-theme en <html> antes del primer paint
+// (evita flash). Acá solo leemos ese valor inicial y persistimos la elección explícita.
+const getInitialTheme = (): Theme => {
+  if (typeof document === "undefined") return "dark";
+  const attr = document.documentElement.getAttribute("data-theme");
+  if (attr === "light" || attr === "dark") return attr;
+  return window.matchMedia?.("(prefers-color-scheme: light)").matches ? "light" : "dark";
+};
+
+interface ThemeState {
+  theme: Theme;
+  toggleTheme: () => void;
+  setTheme: (theme: Theme) => void;
+}
+
+export const useThemeStore = create<ThemeState>()(
+  persist(
+    (set, get) => ({
+      theme: getInitialTheme(),
+      toggleTheme: () => {
+        const next: Theme = get().theme === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", next);
+        set({ theme: next });
+      },
+      setTheme: (theme) => {
+        document.documentElement.setAttribute("data-theme", theme);
+        set({ theme });
+      },
+    }),
+    {
+      name: "avatares-theme",
+    }
+  )
+);
