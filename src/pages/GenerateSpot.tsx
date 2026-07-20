@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useAuthStore } from "../store";
 import { authFetch } from "../lib/api";
 import { Film, Sparkles, Check, RefreshCw, Loader2, Calendar, X } from "lucide-react";
 import { CharacterCardSkeleton } from "../components/Skeleton";
@@ -32,9 +31,13 @@ interface Spot {
   created_at: string;
 }
 
-interface Limits {
-  spots_remaining: number;
-}
+// Espejo de SCRIPT_LENGTH_RANGES en backend/app/api/v1/spots.py — la duración real
+// la marca el TTS del guión, así que el rango por tipo evita que un spot "corto"
+// lleve un guión larguísimo y salga (y cueste) como uno largo.
+const SCRIPT_LENGTH_RANGES: Record<"short" | "long", [number, number]> = {
+  short: [10, 120],
+  long: [120, 500],
+};
 
 export default function GenerateSpot() {
   const [characters, setCharacters] = useState<Character[]>([]);
@@ -54,12 +57,9 @@ export default function GenerateSpot() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [limits, setLimits] = useState<Limits | null>(null);
-  const user = useAuthStore((s) => s.user);
 
   useEffect(() => {
     fetchCharacters();
-    fetchLimits();
     fetchExistingSpots();
   }, []);
 
@@ -74,18 +74,6 @@ export default function GenerateSpot() {
       // Error manejado por authFetch
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchLimits = async () => {
-    try {
-      const res = await authFetch(`/api/v1/admin/users/${user?.id}/limits`);
-      if (res.ok) {
-        const data = await res.json();
-        setLimits(data);
-      }
-    } catch {
-      setLimits({ spots_remaining: 5 });
     }
   };
 
@@ -111,8 +99,9 @@ export default function GenerateSpot() {
       setError("Seleccione un personaje");
       return;
     }
-    if (script.length < 10 || script.length > 500) {
-      setError("El guión debe tener entre 10 y 500 caracteres");
+    const [minLen, maxLen] = SCRIPT_LENGTH_RANGES[type];
+    if (script.length < minLen || script.length > maxLen) {
+      setError(`Para un spot '${type}', el guión debe tener entre ${minLen} y ${maxLen} caracteres`);
       return;
     }
 
@@ -160,7 +149,6 @@ export default function GenerateSpot() {
 
       setTimeout(() => {
         resetForm();
-        fetchLimits();
         fetchExistingSpots();
       }, 2000);
     } catch (err) {
@@ -320,8 +308,6 @@ export default function GenerateSpot() {
   }
 
   if (showForm) {
-    const canCreate = (limits?.spots_remaining ?? 5) > 0;
-
     return (
       <div className="page">
         <div className="page-header">
@@ -331,26 +317,13 @@ export default function GenerateSpot() {
           </button>
         </div>
 
-        {!canCreate && (
-          <div className="limit-warning">
-            Ha alcanzado el límite semanal de spots (5 por semana). Espere hasta el próximo lunes.
-          </div>
-        )}
-
         {characters.length === 0 && (
           <div className="limit-warning">
             No tenés personajes activos. Creá y seleccioná uno en la sección Personajes primero.
           </div>
         )}
 
-        <p className="section-hint">
-          Genere un spot de video para uno de sus personajes.
-          {limits && (
-            <span className="limits-badge">
-              Límite: {limits.spots_remaining} restantes esta semana
-            </span>
-          )}
-        </p>
+        <p className="section-hint">Genere un spot de video para uno de sus personajes.</p>
 
         {error && <p className="error">{error}</p>}
         {success && <p className="success">{success}</p>}
@@ -364,7 +337,7 @@ export default function GenerateSpot() {
                 value={characterId}
                 onChange={(e) => setCharacterId(e.target.value)}
                 required
-                disabled={!canCreate || characters.length === 0}
+                disabled={characters.length === 0}
               >
                 <option value="">Seleccione...</option>
                 {characters.map((c) => (
@@ -382,7 +355,6 @@ export default function GenerateSpot() {
                 value={type}
                 onChange={(e) => setType(e.target.value as "short" | "long")}
                 required
-                disabled={!canCreate}
               >
                 <option value="short">Corto (3-5s)</option>
                 <option value="long">Largo (15-30s)</option>
@@ -391,21 +363,22 @@ export default function GenerateSpot() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="spot-script">Guión (10-500 caracteres) *</label>
+            <label htmlFor="spot-script">
+              Guión ({SCRIPT_LENGTH_RANGES[type][0]}-{SCRIPT_LENGTH_RANGES[type][1]} caracteres) *
+            </label>
             <textarea
               id="spot-script"
               value={script}
               onChange={(e) => setScript(e.target.value)}
               placeholder="Ej: Pepito presentando los resultados del partido"
               rows={3}
-              maxLength={500}
+              maxLength={SCRIPT_LENGTH_RANGES[type][1]}
               required
-              disabled={!canCreate}
             />
-            <span className="char-count">{script.length}/500</span>
+            <span className="char-count">{script.length}/{SCRIPT_LENGTH_RANGES[type][1]}</span>
           </div>
 
-          <button type="submit" className="btn-primary" disabled={!canCreate || characters.length === 0}>
+          <button type="submit" className="btn-primary" disabled={characters.length === 0}>
             <Sparkles size={16} /> Generar Spot
           </button>
         </form>

@@ -28,7 +28,7 @@ export default function Login() {
         throw new Error(data.detail || "Error al iniciar sesión");
       }
 
-      const { access_token } = await res.json();
+      const { access_token, refresh_token } = await res.json();
 
       const userRes = await fetch("/api/v1/auth/users/me", {
         headers: { Authorization: `Bearer ${access_token}` },
@@ -37,7 +37,7 @@ export default function Login() {
       if (!userRes.ok) throw new Error("Error al obtener usuario");
 
       const user = await userRes.json();
-      setAuth(access_token, user);
+      setAuth(access_token, refresh_token, user);
       navigate("/app/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");

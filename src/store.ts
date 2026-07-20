@@ -9,14 +9,31 @@ interface User {
   is_active: boolean;
 }
 
+// Decodifica el `exp` (segundos epoch) de un JWT sin librería — solo se lee,
+// la firma la sigue validando el backend en cada request.
+function decodeExpiry(token: string): number | null {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return typeof payload.exp === "number" ? payload.exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
 interface AuthState {
   token: string | null;
+  refreshToken: string | null;
   user: User | null;
   tokenExpiry: number | null;
-  setAuth: (token: string, user: User) => void;
+  refreshTokenExpiry: number | null;
+  setAuth: (token: string, refreshToken: string, user: User) => void;
+  setAccessToken: (token: string) => void;
   logout: () => void;
+  // Sesión válida = el refresh token (7 días) no venció. El access token
+  // (30 min) puede haber vencido sin que esto sea un logout — authFetch lo
+  // renueva solo contra POST /auth/refresh antes de deslogueear.
   isAuthenticated: () => boolean;
-  isTokenExpired: () => boolean;
+  isAccessTokenExpired: () => boolean;
   isAdmin: () => boolean;
 }
 
@@ -24,32 +41,36 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       token: null,
+      refreshToken: null,
       user: null,
       tokenExpiry: null,
-      setAuth: (token, user) => {
-        // Decodificar JWT para obtener expiración
-        try {
-          const payload = JSON.parse(atob(token.split(".")[1]));
-          set({ token, user, tokenExpiry: payload.exp * 1000 });
-        } catch {
-          // Si no se puede decodificar, establece expiración de 1 hora por defecto
-          set({ token, user, tokenExpiry: Date.now() + 3600000 });
-        }
+      refreshTokenExpiry: null,
+      setAuth: (token, refreshToken, user) => {
+        set({
+          token,
+          refreshToken,
+          user,
+          tokenExpiry: decodeExpiry(token) ?? Date.now() + 30 * 60000,
+          refreshTokenExpiry: decodeExpiry(refreshToken) ?? Date.now() + 7 * 86400000,
+        });
       },
-      logout: () => set({ token: null, user: null, tokenExpiry: null }),
+      setAccessToken: (token) => {
+        set({ token, tokenExpiry: decodeExpiry(token) ?? Date.now() + 30 * 60000 });
+      },
+      logout: () =>
+        set({ token: null, refreshToken: null, user: null, tokenExpiry: null, refreshTokenExpiry: null }),
       isAuthenticated: () => {
-        const { token, tokenExpiry } = get();
-        if (!token) return false;
-        if (tokenExpiry && Date.now() > tokenExpiry) {
-          // Token expirado, limpiar store
-          set({ token: null, user: null, tokenExpiry: null });
+        const { refreshToken, refreshTokenExpiry } = get();
+        if (!refreshToken) return false;
+        if (refreshTokenExpiry && Date.now() > refreshTokenExpiry) {
+          set({ token: null, refreshToken: null, user: null, tokenExpiry: null, refreshTokenExpiry: null });
           return false;
         }
         return true;
       },
-      isTokenExpired: () => {
+      isAccessTokenExpired: () => {
         const { tokenExpiry } = get();
-        return tokenExpiry ? Date.now() > tokenExpiry : false;
+        return tokenExpiry ? Date.now() > tokenExpiry : true;
       },
       isAdmin: () => get().user?.role === "admin",
     }),
