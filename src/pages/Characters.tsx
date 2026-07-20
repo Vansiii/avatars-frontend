@@ -35,11 +35,46 @@ interface Limits {
   characters_remaining: number;
 }
 
+// Opciones guiadas para precisar la apariencia del personaje en el prompt de generación.
+// Se combinan en una sola descripción — no requieren cambios de schema/backend.
+const GENDER_OPTIONS = ["Masculino", "Femenino", "No binario"];
+const AGE_OPTIONS = ["20-30 años", "30-45 años", "45-60 años", "60+ años"];
+const SKIN_TONE_OPTIONS = ["clara", "media", "morena", "oscura"];
+const HAIR_OPTIONS = [
+  "corto y oscuro",
+  "corto y claro",
+  "largo y oscuro",
+  "largo y claro",
+  "rizado",
+  "canoso",
+  "calvo",
+];
+const ATTIRE_OPTIONS = [
+  "traje formal de noticiero",
+  "business casual",
+  "atuendo deportivo",
+  "elegante de gala",
+  "casual moderno",
+];
+// Mapea directo al uso: spots de noticias (formal) vs contenido de valor (cercano/dinámico)
+const PRESENTATION_OPTIONS = [
+  "formal y profesional, como presentador de noticias",
+  "cercano y carismático, como creador de contenido",
+  "enérgico y dinámico",
+  "serio y autoritario",
+];
+
 export default function Characters() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [gender, setGender] = useState("");
+  const [ageRange, setAgeRange] = useState("");
+  const [skinTone, setSkinTone] = useState("");
+  const [hairStyle, setHairStyle] = useState("");
+  const [attire, setAttire] = useState("");
+  const [presentationStyle, setPresentationStyle] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
 
@@ -109,6 +144,19 @@ export default function Characters() {
     }
   };
 
+  // Combina las opciones guiadas + texto libre en una sola descripción para el prompt.
+  const composeDescription = () => {
+    const parts: string[] = [];
+    if (gender) parts.push(gender.toLowerCase());
+    if (ageRange) parts.push(`de ${ageRange}`);
+    if (skinTone) parts.push(`piel ${skinTone}`);
+    if (hairStyle) parts.push(`cabello ${hairStyle}`);
+    if (attire) parts.push(`vistiendo ${attire}`);
+    if (presentationStyle) parts.push(`actitud ${presentationStyle}`);
+    const structured = parts.join(", ");
+    return [structured, description.trim()].filter(Boolean).join(". ").slice(0, 500);
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -141,8 +189,14 @@ export default function Characters() {
       setError("Seleccione una categoría");
       return;
     }
-    if (description && (description.length < 10 || description.length > 500)) {
-      setError("La descripción debe tener entre 10 y 500 caracteres");
+
+    const finalDescription = composeDescription();
+    if (!selectedFile && !finalDescription) {
+      setError("Suba una imagen de referencia o describa la apariencia del personaje");
+      return;
+    }
+    if (finalDescription && finalDescription.length < 10) {
+      setError("Agregue más detalles de apariencia (mínimo 10 caracteres)");
       return;
     }
 
@@ -152,7 +206,7 @@ export default function Characters() {
       const formData = new FormData();
       formData.append("name", name);
       formData.append("category", selectedCategory);
-      if (description) formData.append("description", description);
+      if (finalDescription) formData.append("description", finalDescription);
       if (selectedFile) formData.append("file", selectedFile);
 
       const res = await authFetch("/api/v1/characters", {
@@ -247,6 +301,12 @@ export default function Characters() {
     setSelectedVariation(null);
     setName("");
     setDescription("");
+    setGender("");
+    setAgeRange("");
+    setSkinTone("");
+    setHairStyle("");
+    setAttire("");
+    setPresentationStyle("");
     setSelectedCategory("");
     setSelectedFile(null);
     setPreview(null);
@@ -449,13 +509,114 @@ export default function Characters() {
             </div>
           </div>
 
+          <p className="section-hint">
+            Precise la apariencia y el estilo de presentación — se usa para generar el personaje
+            y define si luce como presentador de noticias o creador de contenido.
+          </p>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="char-gender">Género</label>
+              <select
+                id="char-gender"
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                disabled={!canCreate}
+              >
+                <option value="">Sin especificar</option>
+                {GENDER_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="char-age">Edad aparente</label>
+              <select
+                id="char-age"
+                value={ageRange}
+                onChange={(e) => setAgeRange(e.target.value)}
+                disabled={!canCreate}
+              >
+                <option value="">Sin especificar</option>
+                {AGE_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="char-skin">Tono de piel</label>
+              <select
+                id="char-skin"
+                value={skinTone}
+                onChange={(e) => setSkinTone(e.target.value)}
+                disabled={!canCreate}
+              >
+                <option value="">Sin especificar</option>
+                {SKIN_TONE_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="char-hair">Cabello</label>
+              <select
+                id="char-hair"
+                value={hairStyle}
+                onChange={(e) => setHairStyle(e.target.value)}
+                disabled={!canCreate}
+              >
+                <option value="">Sin especificar</option>
+                {HAIR_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="char-attire">Vestimenta</label>
+              <select
+                id="char-attire"
+                value={attire}
+                onChange={(e) => setAttire(e.target.value)}
+                disabled={!canCreate}
+              >
+                <option value="">Sin especificar</option>
+                {ATTIRE_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="char-presentation">Estilo de presentación</label>
+              <select
+                id="char-presentation"
+                value={presentationStyle}
+                onChange={(e) => setPresentationStyle(e.target.value)}
+                disabled={!canCreate}
+              >
+                <option value="">Sin especificar</option>
+                {PRESENTATION_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
           <div className="form-group">
-            <label htmlFor="char-desc">Descripción (opcional, 10-500 caracteres)</label>
+            <label htmlFor="char-desc">Detalles adicionales (opcional)</label>
             <textarea
               id="char-desc"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe la apariencia del personaje"
+              placeholder="Ej: lentes, barba, cicatriz, colores de marca, personalidad..."
               rows={3}
               maxLength={500}
               disabled={!canCreate}
@@ -465,7 +626,7 @@ export default function Characters() {
 
           <div className="form-group">
             <label htmlFor="char-image">
-              <Image size={16} /> Imagen de referencia (opcional)
+              <Image size={16} /> Imagen de referencia (opcional si describe la apariencia)
             </label>
             <input
               id="char-image"
@@ -480,6 +641,13 @@ export default function Characters() {
           {preview && (
             <div className="image-preview">
               <img src={preview} alt="Vista previa" />
+            </div>
+          )}
+
+          {composeDescription() && (
+            <div className="form-group">
+              <label>Vista previa de la descripción generada</label>
+              <p className="section-hint">{composeDescription()}</p>
             </div>
           )}
 
