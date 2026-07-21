@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { authFetch } from "../lib/api";
+import { authFetch, apiUrl } from "../lib/api";
 import { Users, Tag, BarChart3, Plus, Pencil, Trash2, SlidersHorizontal, X, Check } from "lucide-react";
 import { StatCardSkeleton, TableRowSkeleton } from "../components/Skeleton";
 
@@ -64,7 +64,7 @@ export default function Admin() {
       const [usersRes, metricsRes, categoriesRes] = await Promise.all([
         authFetch("/api/v1/users"),
         authFetch("/api/v1/admin/metrics"),
-        fetch("/api/v1/categories"),
+        fetch(apiUrl("/api/v1/categories")),
       ]);
 
       if (!usersRes.ok || !metricsRes.ok) throw new Error("Error al cargar datos");

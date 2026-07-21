@@ -1,5 +1,13 @@
 import { useAuthStore } from "../store";
 
+// URL del backend en producción. Vacío en local: el proxy de Vite
+// (vite.config.ts) reenvía las rutas relativas /api/* a localhost:8000.
+const API_BASE = import.meta.env.VITE_API_URL ?? "";
+
+export function apiUrl(path: string): string {
+  return `${API_BASE}${path}`;
+}
+
 // Deduplica refrescos concurrentes: si varias llamadas a authFetch detectan el
 // access token vencido al mismo tiempo, todas esperan el mismo POST /refresh
 // en vez de disparar uno cada una.
@@ -11,7 +19,7 @@ async function refreshAccessToken(): Promise<string> {
       const refreshToken = useAuthStore.getState().refreshToken;
       if (!refreshToken) throw new Error("No hay refresh token");
 
-      const res = await fetch("/api/v1/auth/refresh", {
+      const res = await fetch(apiUrl("/api/v1/auth/refresh"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refresh_token: refreshToken }),
@@ -61,7 +69,8 @@ export async function authFetch(url: string, options: RequestInit = {}): Promise
     Authorization: `Bearer ${t}`,
   });
 
-  let response = await fetch(url, { ...options, headers: buildHeaders(token) });
+  const fullUrl = apiUrl(url);
+  let response = await fetch(fullUrl, { ...options, headers: buildHeaders(token) });
 
   if (response.status === 401) {
     // El backend rechazó el access token (p. ej. venció justo entre el chequeo
@@ -71,7 +80,7 @@ export async function authFetch(url: string, options: RequestInit = {}): Promise
     } catch {
       forceLogout();
     }
-    response = await fetch(url, { ...options, headers: buildHeaders(token) });
+    response = await fetch(fullUrl, { ...options, headers: buildHeaders(token) });
     if (response.status === 401) {
       forceLogout();
     }

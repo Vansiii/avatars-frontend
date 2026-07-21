@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store";
 import ThemeToggle from "../components/ThemeToggle";
+import { apiUrl } from "../lib/api";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -17,7 +18,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/v1/auth/login", {
+      const res = await fetch(apiUrl("/api/v1/auth/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -30,7 +31,7 @@ export default function Login() {
 
       const { access_token, refresh_token } = await res.json();
 
-      const userRes = await fetch("/api/v1/auth/users/me", {
+      const userRes = await fetch(apiUrl("/api/v1/auth/users/me"), {
         headers: { Authorization: `Bearer ${access_token}` },
       });
 

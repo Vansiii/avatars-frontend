@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { authFetch } from "../lib/api";
+import { authFetch, apiUrl } from "../lib/api";
 import { Image, Sparkles, Check, Loader2, User, Calendar, Plus, X, Volume2, Play, Pause, Grid, Upload } from "lucide-react";
 import { CharacterCardSkeleton } from "../components/Skeleton";
 
@@ -84,7 +84,7 @@ export default function Characters() {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch("/api/v1/categories");
+      const res = await fetch(apiUrl("/api/v1/categories"));
       if (res.ok) {
         const data = await res.json();
         setCategories(data);
@@ -141,7 +141,7 @@ export default function Characters() {
       return;
     }
 
-    audio.src = `/api/v1/characters/voice-preview?url=${encodeURIComponent(voice.preview_audio_url)}`;
+    audio.src = apiUrl(`/api/v1/characters/voice-preview?url=${encodeURIComponent(voice.preview_audio_url)}`);
     audio.play();
     setPlayingVoiceId(voice.voice_id);
   };
